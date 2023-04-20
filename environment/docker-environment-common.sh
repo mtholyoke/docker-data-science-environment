@@ -6,9 +6,10 @@
 function help() {
   local bold=$(tput bold)
   local normal=$(tput sgr0)
-  echo -e "${bold}Usage:${normal} $0 {start|stop|build|up|down|logs}"
+  echo -e "${bold}Usage:${normal} $0 {start|stop|build|up|down|logs|images|version|labels|tags}"
   echo
   echo -e "Manage interactions with Docker / Compose"
+  echo -e "Some commands, like version and tags, will only work if the container is already running."
 }
 
 # Retrieve the appropriate image/container tag and generate the `docker compose` command.
@@ -38,49 +39,58 @@ fi
 case "$1" in
   logs)
     retrieve_tag
-    CMD="docker compose -f environment/compose.yml logs -f"
+    docker compose -f environment/compose.yml logs -f
     ;;
 
   start)
     retrieve_tag
-    CMD="docker compose -f environment/compose.yml start"
+    docker compose -f environment/compose.yml start
     ;;
     
   stop)
     retrieve_tag
-    CMD="docker compose -f environment/compose.yml stop"
+    docker compose -f environment/compose.yml stop
     ;;
   up)
     retrieve_tag
-    CMD="docker compose -f environment/compose.yml up -d"
+    docker compose -f environment/compose.yml up -d
     ;;
 
   down)
     retrieve_tag
-    CMD="docker compose -f environment/compose.yml down"
+    docker compose -f environment/compose.yml down
     ;;
+
+  images|version)
+    retrieve_tag
+    docker compose -f environment/compose.yml images
+    ;;
+
+  labels|tags)
+    retrieve_tag
+    CONTAINER_ID=`docker compose -f environment/compose.yml ps -q`
+    if [ -z "$CONTAINER_ID" ]; then
+      echo -e "No running containers. Try \`$0 build\` and \`$0 up\`"
+      exit 5
+    fi
+    docker inspect --format='{{ range $k,$v:=.Config.Labels }}{{ if eq (printf "%.24s" $k) "org.opencontainers.image" }}{{ $k }}: {{ $v }}{{ printf "\n" }}{{end}}{{end}}' $CONTAINER_ID
+    ;;
+
     
   build)
-    # Configure the image label information
-    ## Look at with
-    ### `docker image ls` to find the image
-    ###     – given `image: datascience-notebook:$TAG` in compose.yml, the image name is `datascience-notebook`
-    ### `docker inspect datascience-notebook:2023-04-18  | grep "org.label-schema"` to inspect the image
-    ###     - use the image name and the tag from `docker image ls`
-    ### You can also cross-reference the "IMAGE ID" from `docker image ls` with the "IMAGE" from `docker container ls`
-
-    VCS_COMMIT_HASH=$(git log --pretty=format:'%h' -n 1)
+    REPOSITORY_URL="https://github.com/mtholyoke/docker-data-science-environment" ## NOTE: Update this.
+    REVISION=$(git log --pretty=format:'%as_%h' -n 1)
+    LATEST_GIT_TAG="$(git describe --abbrev=0 --tags)"
+    BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+    # PROGRESS="--progress=plain" # Print debug information during Docker build phase
     NO_CACHE="--no-cache=true"
-    BUILD_DATE="--build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-    VCS_REF="--build-arg VCS_REF=$VCS_COMMIT_HASH"
-    # PROGRESS="--progress=plain"
 
     # Configure image tag information from the Git commit hash, used in compose.yml and in docker-environment-common.sh
-    export TAG=$VCS_COMMIT_HASH
+    export TAG=$REVISION_$LATEST_GIT_TAG
     echo $TAG > environment/image-tags
 
     # Build image
-    CMD="docker compose -f environment/compose.yml build $NO_CACHE $BUILD_DATE $VCS_REF $PROGRESS datascience-notebook"
+    docker compose -f environment/compose.yml build $NO_CACHE --build-arg BUILD_DATE=$BUILD_DATE --build-arg REVISION=$REVISION --build-arg REPOSITORY_URL=$REPOSITORY_URL --build-arg LATEST_GIT_TAG=$LATEST_GIT_TAG $PROGRESS datascience-notebook
     ;;
     
   *)
@@ -88,7 +98,3 @@ case "$1" in
     help
     exit 2
 esac
-
-# Do the thing
-echo $CMD
-$CMD

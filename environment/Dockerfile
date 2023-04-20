@@ -7,21 +7,26 @@ FROM jupyter/datascience-notebook:9e63909e0317
 WORKDIR /home/jovyan/
 COPY --chown=${NB_UID}:${NB_GID} . .
 
-# Tag the image
+# Allow these build-args to be passed into the Dockerfile's context for tagging the image from environment/docker-environment-common.sh
+## NOTE: You can update REPOSITORY_URL in environment/docker-environment-common.sh
+ARG REPOSITORY_URL
 ARG BUILD_DATE
-ARG VCS_REF
-#
-LABEL org.label-schema.build-date=$BUILD_DATE \
-  org.label-schema.name="mtholyoke/docker-for-data-science" \
-  org.label-schema.description="Standardized and reproducible data science research environment" \
-  org.label-schema.url="https://github.com/mtholyoke/docker-data-science-environment/wiki" \
-  org.label-schema.vcs-url="https://github.com/mtholyoke/docker-data-science-environment" \
-  org.label-schema.vcs-ref=$VCS_REF \
-  org.label-schema.vendor="Mount Holyoke College" \
-  org.label-schema.version="1.1.0" \
-  org.label-schema.schema-version="1.0.0-rc.1"
-# org.label-schema.usage="" \
-
+ARG REVISION
+ARG LATEST_GIT_TAG
+# Tag the image. Schema based on https://github.com/opencontainers/image-spec/blob/main/annotations.md.
+## NOTE: org.opencontainers.image.version will always be the latest Git release tag
+LABEL \
+  org.opencontainers.image.created=$BUILD_DATE \
+  org.opencontainers.image.authors="adrury@mtholyoke.edu" \
+  org.opencontainers.image.url="$REPOSITORY_URL/blob/main/environment/README.md" \
+  org.opencontainers.image.documentation="$REPOSITORY_URL/wiki" \
+  org.opencontainers.image.source=$REPOSITORY_URL \
+  org.opencontainers.image.revision=$REVISION \
+  org.opencontainers.image.vendor="Trustees of Mount Holyoke College" \
+  org.opencontainers.image.license="MIT" \
+  org.opencontainers.image.title="Docker Data Science Environment" \
+  org.opencontainers.image.description="Standardized and reproducible data science research environment" \
+  org.opencontainers.image.version=$LATEST_GIT_TAG
 
 # Set up jupyterlab/ for UI to use, putting data/ and analysis/ at the root of the UI
 WORKDIR /home/jovyan/
