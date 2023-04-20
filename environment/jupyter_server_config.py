@@ -492,7 +492,7 @@ c = get_config()  # noqa
 
 ## The directory to use for notebooks and kernels.
 #  Default: ''
-c.ServerApp.root_dir = 'analysis'
+c.ServerApp.root_dir = 'jupyterlab'
 
 ## The session manager class to use.
 #  Default: 'builtins.object'

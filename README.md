@@ -19,3 +19,7 @@ Data to be shared between docker container and local machine.
 ### `environment/`
 
 Docker related files and package lists for Python and R as well as JupyterLab plug-ins.
+
+### `jupyterlab/`
+
+This is the root directory for the JupyterLab UI. By default, it will include the `analysis/` and `data/` directories via a symlink. This keeps the JupyterLab UI clean – `environment/` and other top-level files will not appear in the left rail.
