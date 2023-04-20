@@ -16,8 +16,8 @@ Otherwise, you may proceed to [Starting a stopped container](#Starting-a-stopped
 
 At the command line:
 ```bash
-docker compose -f environment/compose.yml build
-docker compose -f environment/compose.yml up -d
+./environment/docker-environment-common.sh build
+./environment/docker-environment-common.sh up
 ```
 
 When you bring up JupyterLab, you may see this warning. That's okay, you can ignore it.
@@ -30,20 +30,31 @@ WARN[0000] Found orphan containers ([<some_container_name>]) for this project. I
 
 To start the JupyterLab Docker container, at the command line:
 ```bash
-docker compose -f environment/compose.yml start
+./environment/docker-environment-common.sh start
 ```
 
 ### Accessing JupyterLab
 
-When it's done spinning up, the container will be accessible via any webbrowser on the host machine at `http://localhost:PORT_NUMBER/` (eg. http://localhost:10000).
+When it's done spinning up, the container will be accessible via any web browser on the host machine at `http://localhost:PORT_NUMBER/` (eg. http://localhost:10000).
 
 
 ## Stopping a container
 
 To stop the JupyterLab Docker container, at the command line:
 ```bash
-docker compose -f environment/compose.yml stop
+./environment/docker-environment-common.sh stop
 ```
+
+
+## View container logs
+
+To view the JupyterLab Docker container logs, at the command line:
+```bash
+./environment/docker-environment-common.sh logs
+```
+
+Exit using `^C` (control + c) as many times as required.
+
 
 
 # Structure
@@ -80,6 +91,10 @@ Additional JupyterLab extensions to be installed when the container is built.
 
 ## Supporting files
 
+### `docker-environment-common.sh`
+
+This script helps abstract away the details of Docker, while maintaining a versioning/tagging system on the Docker images and containers. It is there to help make interacting with the Docker environment easier.
+
 ### `install-jupyter-extensions.sh`
 
 This script installs the JupyterLab extensions, and is run by the `Dockerfile`.
@@ -88,5 +103,3 @@ This script installs the JupyterLab extensions, and is run by the `Dockerfile`.
 ### `jupyter_server_config.py`
 
 This is where you can make changes to the Jupyter server configuration. By default, it sets the JupyterLab UI to launch in the `jupyterlab` folder of the main project and removes server authentication since this project is only meant to be run on a researcher's computer and not in a shared or production environment.
-
-
