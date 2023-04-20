@@ -56,6 +56,20 @@ To view the JupyterLab Docker container logs, at the command line:
 Exit using `^C` (control + c) as many times as required.
 
 
+## View container version
+
+To view the JupyterLab Docker container version, at the command line:
+```bash
+./environment/docker-environment-common.sh version
+```
+
+
+## View container tags / labels
+
+To view the JupyterLab Docker container tags, at the command line:
+```bash
+./environment/docker-environment-common.sh tags
+```
 
 # Structure
 
